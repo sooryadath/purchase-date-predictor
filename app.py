@@ -76,17 +76,22 @@ if uploaded_file:
     latest_txns['Next Purchase Date 2'] = [d[1] for d in next_dates]
     latest_txns['Next Purchase Date 3'] = [d[2] for d in next_dates]
 
-    # Show predictions for selected customer
-    customer_names = latest_txns['Customer Name'].dropna().unique()
-    selected_customer = st.selectbox("Select a customer to view predictions", options=customer_names)
+   # Format dates to dd/mm/yyyy for display
+date_cols = ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
+for col in date_cols:
+    latest_txns[col] = pd.to_datetime(latest_txns[col]).dt.strftime('%d/%m/%Y')
 
-    result = latest_txns[latest_txns['Customer Name'] == selected_customer]
-    st.write("📌 **Next Predicted Purchase Dates for Selected Customer:**")
-    st.dataframe(result[['Customer Code', 'Customer Name', 'Bill date',
-                         'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
+# Show predictions for selected customer
+customer_names = latest_txns['Customer Name'].dropna().unique()
+selected_customer = st.selectbox("Select a customer to view predictions", options=customer_names)
 
-    # Show all predictions
-    output_df = latest_txns[['Customer Code', 'Customer Name', 'Bill date',
-                             'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
-    st.write("📅 **Predicted Purchase Dates for All Customers:**")
-    st.dataframe(output_df)
+result = latest_txns[latest_txns['Customer Name'] == selected_customer]
+st.write("📌 **Next Predicted Purchase Dates for Selected Customer:**")
+st.dataframe(result[['Customer Code', 'Customer Name', 'Bill date',
+                     'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
+
+# Show all predictions
+output_df = latest_txns[['Customer Code', 'Customer Name', 'Bill date',
+                         'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
+st.write("📅 **Predicted Purchase Dates for All Customers:**")
+st.dataframe(output_df)

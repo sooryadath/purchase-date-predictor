@@ -103,12 +103,16 @@ start_date, end_date = st.date_input(
     value=[pd.to_datetime('today'), pd.to_datetime('today') + pd.Timedelta(days=30)]
 )
 
-# Convert date columns back to datetime for filtering
+# Ensure they are pandas Timestamp for comparison
+start_date = pd.to_datetime(start_date)
+end_date = pd.to_datetime(end_date)
+
+# Convert string dates to datetime for filtering
 filtered_df = latest_txns.copy()
 for col in ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
     filtered_df[col] = pd.to_datetime(filtered_df[col], format='%d/%m/%Y')
 
-# Create a mask for any of the predicted dates within the selected range
+# Filter based on date range
 mask = (
     (filtered_df['Next Purchase Date 1'].between(start_date, end_date)) |
     (filtered_df['Next Purchase Date 2'].between(start_date, end_date)) |
@@ -120,4 +124,3 @@ filtered_predictions = filtered_df[mask]
 st.write("📈 **Predicted Purchases Within Selected Date Range:**")
 st.dataframe(filtered_predictions[['Customer Code', 'Customer Name', 'Bill date',
                                    'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
-

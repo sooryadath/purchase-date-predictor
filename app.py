@@ -76,7 +76,7 @@ if uploaded_file:
     latest_txns['Next Purchase Date 2'] = [d[1] for d in next_dates]
     latest_txns['Next Purchase Date 3'] = [d[2] for d in next_dates]
 
-    # ✅ Format dates
+    # Format dates for display
     date_cols = ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
     for col in date_cols:
         latest_txns[col] = pd.to_datetime(latest_txns[col]).dt.strftime('%d/%m/%Y')
@@ -95,30 +95,29 @@ if uploaded_file:
                              'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
     st.write("📅 **Predicted Purchase Dates for All Customers:**")
     st.dataframe(output_df)
-     # 📅 Date Range Filter for Predicted Purchases
+
+    # 📅 Date Range Filter for Predicted Purchases
     st.markdown("## 🔍 Filter Predictions by Date Range")
 
     # Select date range
     start_date = st.date_input("Start Date", value=pd.to_datetime("2025-05-28"))
     end_date = st.date_input("End Date", value=pd.to_datetime("2025-06-27"))
 
-    # Convert date columns with correct format (dayfirst=True to handle dd/mm/yyyy correctly)
-    date_cols = ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3', 'Bill date']
-   for col in date_cols:
-      latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce', dayfirst=True)
+    # Convert date columns back to datetime for filtering (using dayfirst=True to handle dd/mm/yyyy)
+    for col in date_cols:
+        latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce', dayfirst=True)
 
-# Filter rows where any of the Next Purchase Dates fall within the selected date range
-   filtered_df = latest_txns[
-    latest_txns['Next Purchase Date 1'].between(start_date, end_date) |
-    latest_txns['Next Purchase Date 2'].between(start_date, end_date) |
-    latest_txns['Next Purchase Date 3'].between(start_date, end_date)
-]
+    # Filter rows where any of the Next Purchase Dates fall within the selected date range
+    filtered_df = latest_txns[
+        latest_txns['Next Purchase Date 1'].between(start_date, end_date) |
+        latest_txns['Next Purchase Date 2'].between(start_date, end_date) |
+        latest_txns['Next Purchase Date 3'].between(start_date, end_date)
+    ]
 
-# Format all date columns to 'dd-mmm-yy'
-  for col in date_cols:
-    filtered_df[col] = filtered_df[col].dt.strftime('%d-%b-%y')
+    # Format all date columns in filtered_df for display
+    for col in date_cols:
+        filtered_df[col] = filtered_df[col].dt.strftime('%d-%b-%y')
 
-# Display result
-  st.write(f"{start_date} – {end_date}")
-  st.dataframe(filtered_df)
-  
+    # Display result
+    st.write(f"Showing predictions from {start_date} to {end_date}")
+    st.dataframe(filtered_df)

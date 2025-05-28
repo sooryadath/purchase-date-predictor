@@ -104,27 +104,23 @@ start_date, end_date = st.date_input(
 )
 
 # Ensure they are pandas Timestamp for comparison
+# Convert date inputs to datetime if they aren't already
 start_date = pd.to_datetime(start_date)
 end_date = pd.to_datetime(end_date)
 
-# Convert string dates to datetime for filtering
-filtered_df = latest_txns.copy()
-for col in ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
-    filtered_df[col] = pd.to_datetime(filtered_df[col], format='%d/%m/%Y')
+# Filter based on any of the three 'Next Purchase Date' columns
+filtered_df = latest_txns[
+    (pd.to_datetime(latest_txns['Next Purchase Date 1']).between(start_date, end_date)) |
+    (pd.to_datetime(latest_txns['Next Purchase Date 2']).between(start_date, end_date)) |
+    (pd.to_datetime(latest_txns['Next Purchase Date 3']).between(start_date, end_date))
+]
 
-# Filter based on date range
-mask = (
-    (filtered_df['Next Purchase Date 1'].between(start_date, end_date)) |
-    (filtered_df['Next Purchase Date 2'].between(start_date, end_date)) |
-    (filtered_df['Next Purchase Date 3'].between(start_date, end_date))
-)
-
-filtered_predictions = filtered_df[mask]
-
-st.write("📈 **Predicted Purchases Within Selected Date Range:**")
-# Format each date column to 'dd-mmm-yy'
-for col in ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
+# Format all date columns to 'dd-mmm-yy' and convert to string
+date_cols = ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
+for col in date_cols:
     filtered_df[col] = pd.to_datetime(filtered_df[col]).dt.strftime('%d-%b-%y').astype(str)
 
-st.dataframe(filtered_predictions[['Customer Code', 'Customer Name', 'Bill date',
-                                   'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
+# Display the filtered dataframe
+st.dataframe(filtered_df[['Customer Code', 'Customer Name', 'Bill date',
+                          'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
+

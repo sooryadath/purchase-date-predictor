@@ -98,37 +98,22 @@ if uploaded_file:
      # 📅 Date Range Filter for Predicted Purchases
 st.markdown("## 🔍 Filter Predictions by Date Range")
 
-start_date, end_date = st.date_input(
-    "Select date range for filtering predicted purchases",
-    value=[pd.to_datetime('today'), pd.to_datetime('today') + pd.Timedelta(days=30)]
-)
+# Convert date columns with correct format
+date_cols = ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
+for col in date_cols:
+    latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce', dayfirst=True)
 
-# Ensure they are pandas Timestamp for comparison
-# Convert date inputs to datetime if they aren't already
-import pandas as pd
-import streamlit as st
-
-# Ensure inputs are datetime
-start_date = pd.to_datetime(start_date)
-end_date = pd.to_datetime(end_date)
-
-# Safely convert columns to datetime, invalid parsing will become NaT
-latest_txns['Next Purchase Date 1'] = pd.to_datetime(latest_txns['Next Purchase Date 1'], errors='coerce')
-latest_txns['Next Purchase Date 2'] = pd.to_datetime(latest_txns['Next Purchase Date 2'], errors='coerce')
-latest_txns['Next Purchase Date 3'] = pd.to_datetime(latest_txns['Next Purchase Date 3'], errors='coerce')
-
-# Filter by any of the date columns falling between the start and end date
+# Filter based on any "Next Purchase Date" falling within range
 filtered_df = latest_txns[
-    (latest_txns['Next Purchase Date 1'].between(start_date, end_date)) |
-    (latest_txns['Next Purchase Date 2'].between(start_date, end_date)) |
-    (latest_txns['Next Purchase Date 3'].between(start_date, end_date))
+    latest_txns['Next Purchase Date 1'].between(start_date, end_date) |
+    latest_txns['Next Purchase Date 2'].between(start_date, end_date) |
+    latest_txns['Next Purchase Date 3'].between(start_date, end_date)
 ]
 
-# Format the required date columns
-date_cols = ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
+# Format the filtered date columns to dd-mmm-yy
 for col in date_cols:
-    filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%d-%b-%y')
+    filtered_df[col] = filtered_df[col].dt.strftime('%d-%b-%y')
 
-# Show the filtered and formatted DataFrame
-st.dataframe(filtered_df[['Customer Code', 'Customer Name', 'Bill date',
-                          'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
+# Display filtered table
+st.write(f"{start_date} – {end_date}")
+st.dataframe(filtered_df)

@@ -96,7 +96,7 @@ if uploaded_file:
     st.write("📅 **Predicted Purchase Dates for All Customers:**")
     st.dataframe(output_df)
      # 📅 Date Range Filter for Predicted Purchases
-     st.markdown("## 🔍 Filter Predictions by Date Range")
+    st.markdown("## 🔍 Filter Predictions by Date Range")
 
     # Select date range
     start_date = st.date_input("Start Date", value=pd.to_datetime("2025-05-28"))

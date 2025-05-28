@@ -100,8 +100,8 @@ if uploaded_file:
     st.markdown("## 🔍 Filter Predictions by Date Range")
 
     # Select date range
-    start_date = st.date_input("Start Date", value=pd.to_datetime("2025-05-28"))
-    end_date = st.date_input("End Date", value=pd.to_datetime("2025-06-27"))
+    start_date = st.date_input("Start Date", value=today)
+    end_date = st.date_input("End Date", value=today + timedelta(days=30))
 
     # Convert start_date and end_date from datetime.date to pd.Timestamp
     start_date = pd.Timestamp(start_date)

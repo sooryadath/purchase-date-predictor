@@ -122,5 +122,9 @@ mask = (
 filtered_predictions = filtered_df[mask]
 
 st.write("📈 **Predicted Purchases Within Selected Date Range:**")
+# Format each date column to 'dd-mmm-yy'
+for col in ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
+    filtered_df[col] = pd.to_datetime(filtered_df[col]).dt.strftime('%d-%b-%y')
+
 st.dataframe(filtered_predictions[['Customer Code', 'Customer Name', 'Bill date',
                                    'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])

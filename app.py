@@ -119,9 +119,13 @@ if uploaded_file:
     ]
 
     # Format all date columns to 'dd-mmm-yy' for display
-    for col in date_cols:
-        filtered_df[col] = filtered_df[col].dt.strftime('%d-%b-%y')
+   # Select only required columns
+    filtered_df = filtered_df[['Customer Code', 'Customer Name', 'Bill date',
+                           'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
 
-    # Display filtered results
+# Format date columns for display
+    for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
+    filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%d-%b-%y')
+
     st.write(f"Showing purchases between {start_date.date()} and {end_date.date()}")
     st.dataframe(filtered_df)

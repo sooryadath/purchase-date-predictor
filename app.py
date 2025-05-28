@@ -95,3 +95,29 @@ if uploaded_file:
                              'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
     st.write("📅 **Predicted Purchase Dates for All Customers:**")
     st.dataframe(output_df)
+     # 📅 Date Range Filter for Predicted Purchases
+st.markdown("## 🔍 Filter Predictions by Date Range")
+
+start_date, end_date = st.date_input(
+    "Select date range for filtering predicted purchases",
+    value=[pd.to_datetime('today'), pd.to_datetime('today') + pd.Timedelta(days=30)]
+)
+
+# Convert date columns back to datetime for filtering
+filtered_df = latest_txns.copy()
+for col in ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
+    filtered_df[col] = pd.to_datetime(filtered_df[col], format='%d/%m/%Y')
+
+# Create a mask for any of the predicted dates within the selected range
+mask = (
+    (filtered_df['Next Purchase Date 1'].between(start_date, end_date)) |
+    (filtered_df['Next Purchase Date 2'].between(start_date, end_date)) |
+    (filtered_df['Next Purchase Date 3'].between(start_date, end_date))
+)
+
+filtered_predictions = filtered_df[mask]
+
+st.write("📈 **Predicted Purchases Within Selected Date Range:**")
+st.dataframe(filtered_predictions[['Customer Code', 'Customer Name', 'Bill date',
+                                   'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
+

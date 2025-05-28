@@ -96,24 +96,28 @@ if uploaded_file:
     st.write("📅 **Predicted Purchase Dates for All Customers:**")
     st.dataframe(output_df)
      # 📅 Date Range Filter for Predicted Purchases
-st.markdown("## 🔍 Filter Predictions by Date Range")
+     st.markdown("## 🔍 Filter Predictions by Date Range")
 
-# Convert date columns with correct format
-date_cols = ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
+# Select date range
+start_date = st.date_input("Start Date", value=pd.to_datetime("2025-05-28"))
+end_date = st.date_input("End Date", value=pd.to_datetime("2025-06-27"))
+
+# Convert date columns with correct format (dayfirst=True to handle dd/mm/yyyy correctly)
+date_cols = ['Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3', 'Bill date']
 for col in date_cols:
     latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce', dayfirst=True)
 
-# Filter based on any "Next Purchase Date" falling within range
+# Filter rows where any of the Next Purchase Dates fall within the selected date range
 filtered_df = latest_txns[
     latest_txns['Next Purchase Date 1'].between(start_date, end_date) |
     latest_txns['Next Purchase Date 2'].between(start_date, end_date) |
     latest_txns['Next Purchase Date 3'].between(start_date, end_date)
 ]
 
-# Format the filtered date columns to dd-mmm-yy
+# Format all date columns to 'dd-mmm-yy'
 for col in date_cols:
     filtered_df[col] = filtered_df[col].dt.strftime('%d-%b-%y')
 
-# Display filtered table
+# Display result
 st.write(f"{start_date} – {end_date}")
 st.dataframe(filtered_df)

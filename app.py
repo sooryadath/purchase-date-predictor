@@ -125,7 +125,7 @@ if uploaded_file:
 
 # Format date columns for display
     for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
-    filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%d-%b-%y')
+      filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%d-%b-%y')
 
     st.write(f"Showing purchases between {start_date.date()} and {end_date.date()}")
     st.dataframe(filtered_df)

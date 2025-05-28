@@ -105,22 +105,30 @@ start_date, end_date = st.date_input(
 
 # Ensure they are pandas Timestamp for comparison
 # Convert date inputs to datetime if they aren't already
+import pandas as pd
+import streamlit as st
+
+# Ensure inputs are datetime
 start_date = pd.to_datetime(start_date)
 end_date = pd.to_datetime(end_date)
 
-# Filter based on any of the three 'Next Purchase Date' columns
+# Safely convert columns to datetime, invalid parsing will become NaT
+latest_txns['Next Purchase Date 1'] = pd.to_datetime(latest_txns['Next Purchase Date 1'], errors='coerce')
+latest_txns['Next Purchase Date 2'] = pd.to_datetime(latest_txns['Next Purchase Date 2'], errors='coerce')
+latest_txns['Next Purchase Date 3'] = pd.to_datetime(latest_txns['Next Purchase Date 3'], errors='coerce')
+
+# Filter by any of the date columns falling between the start and end date
 filtered_df = latest_txns[
-    (pd.to_datetime(latest_txns['Next Purchase Date 1']).between(start_date, end_date)) |
-    (pd.to_datetime(latest_txns['Next Purchase Date 2']).between(start_date, end_date)) |
-    (pd.to_datetime(latest_txns['Next Purchase Date 3']).between(start_date, end_date))
+    (latest_txns['Next Purchase Date 1'].between(start_date, end_date)) |
+    (latest_txns['Next Purchase Date 2'].between(start_date, end_date)) |
+    (latest_txns['Next Purchase Date 3'].between(start_date, end_date))
 ]
 
-# Format all date columns to 'dd-mmm-yy' and convert to string
+# Format the required date columns
 date_cols = ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
 for col in date_cols:
-    filtered_df[col] = pd.to_datetime(filtered_df[col]).dt.strftime('%d-%b-%y').astype(str)
+    filtered_df[col] = pd.to_datetime(filtered_df[col], errors='coerce').dt.strftime('%d-%b-%y')
 
-# Display the filtered dataframe
+# Show the filtered and formatted DataFrame
 st.dataframe(filtered_df[['Customer Code', 'Customer Name', 'Bill date',
                           'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
-

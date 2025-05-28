@@ -91,10 +91,10 @@ if uploaded_file:
                          'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
 
     # Show all predictions
-    output_df = latest_txns[['Customer Code', 'Customer Name', 'Bill date',
-                             'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
-    st.write("📅 **Predicted Purchase Dates for All Customers:**")
-    st.dataframe(output_df)
+    # output_df = latest_txns[['Customer Code', 'Customer Name', 'Bill date',
+    #                          'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
+    # st.write("📅 **Predicted Purchase Dates for All Customers:**")
+    # st.dataframe(output_df)
 
     # 📅 Date Range Filter for Predicted Purchases
     st.markdown("## 🔍 Filter Predictions by Date Range")

@@ -109,6 +109,7 @@ if uploaded_file:
     end_date = pd.Timestamp(end_date)
 
     # Convert date columns back to datetime for filtering (dayfirst=True to handle dd/mm/yyyy format)
+    today = datetime.today()
     for col in date_cols:
         latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce', dayfirst=True)
 

@@ -103,7 +103,11 @@ if uploaded_file:
     start_date = st.date_input("Start Date", value=pd.to_datetime("2025-05-28"))
     end_date = st.date_input("End Date", value=pd.to_datetime("2025-06-27"))
 
-    # Convert date columns back to datetime for filtering (using dayfirst=True to handle dd/mm/yyyy)
+    # Convert start_date and end_date from datetime.date to pd.Timestamp
+    start_date = pd.Timestamp(start_date)
+    end_date = pd.Timestamp(end_date)
+
+    # Convert date columns back to datetime for filtering (dayfirst=True to handle dd/mm/yyyy format)
     for col in date_cols:
         latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce', dayfirst=True)
 
@@ -114,10 +118,10 @@ if uploaded_file:
         latest_txns['Next Purchase Date 3'].between(start_date, end_date)
     ]
 
-    # Format all date columns in filtered_df for display
+    # Format all date columns to 'dd-mmm-yy' for display
     for col in date_cols:
         filtered_df[col] = filtered_df[col].dt.strftime('%d-%b-%y')
 
-    # Display result
-    st.write(f"Showing predictions from {start_date} to {end_date}")
+    # Display filtered results
+    st.write(f"Showing purchases between {start_date.date()} and {end_date.date()}")
     st.dataframe(filtered_df)

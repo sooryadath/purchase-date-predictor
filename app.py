@@ -6,7 +6,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 from datetime import datetime, timedelta
 import plotly.express as px
-
+st.set_page_config(page_title="Customer Dashboard", layout="wide")
 st.title("🛍️ Customer Purchase Date Predictor")
 
 uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
@@ -16,7 +16,7 @@ if uploaded_file:
     df['Bill date'] = pd.to_datetime(df['Bill date'])
     df['Year'] = df['Bill date'].dt.year
     
-    st.set_page_config(page_title="Customer Dashboard", layout="wide")
+    
     st.title("📊 Billing Dashboard")
     
     # Calculate Top Customer Info

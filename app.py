@@ -12,7 +12,38 @@ uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
-
+    df['Bill date'] = pd.to_datetime(df['Bill date'])
+    df['Year'] = df['Bill date'].dt.year
+    
+    st.set_page_config(page_title="Customer Dashboard", layout="wide")
+    st.title("📊 Billing Dashboard")
+    
+    # Calculate Top Customer Info
+    top_customer_df = df.groupby('Customer Name')['Bill Qty'].sum().reset_index()
+    top_customer_df = top_customer_df.sort_values('Bill Qty', ascending=False)
+    
+    top_customer = top_customer_df.iloc[0]
+    top_10 = top_customer_df.head(10)
+    
+    # ---- ROW 1: Metric Card ----
+    st.subheader("🏆 Top Customer Summary")
+    col1, col2 = st.columns(2)
+    with col1:
+        st.metric(label="Top Customer", value=top_customer['Customer Name'])
+    with col2:
+        st.metric(label="Total Quantity", value=int(top_customer['Bill Qty']))
+    
+    # ---- ROW 2: Top 10 Customers Chart ----
+    st.subheader("🔟 Top 10 Customers by Quantity")
+    fig1 = px.bar(top_10, x='Customer Name', y='Bill Qty', title='Top 10 Customers', color='Bill Qty',
+                  color_continuous_scale='Blues')
+    st.plotly_chart(fig1, use_container_width=True)
+    
+    # ---- ROW 3: Year-wise Sales ----
+    st.subheader("📅 Year-wise Sales Quantity")
+    year_sales = df.groupby('Year')['Bill Qty'].sum().reset_index()
+    fig2 = px.bar(year_sales, x='Year', y='Bill Qty', title='Year-wise Sales Quantity', text='Bill Qty')
+    st.plotly_chart(fig2, use_container_width=True)
     # Clean column names
     df.columns = df.columns.str.strip()
 

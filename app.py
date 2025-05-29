@@ -32,7 +32,7 @@ if uploaded_file:
     top_customer_df = top_customer_df.sort_values('Bill Qty', ascending=False)
     
     top_customer = top_customer_df.iloc[0] if not top_customer_df.empty else {"Customer Name": "N/A", "Bill Qty": 0}
-    top_100 = top_customer_df.head(100)
+    top_10 = top_customer_df.head(10)
     
     # ---- ROW 1: Metric Card ----
     st.subheader("🏆 Top Customer Summary")

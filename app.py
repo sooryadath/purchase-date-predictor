@@ -25,7 +25,24 @@ if uploaded_file:
     
     top_customer = top_customer_df.iloc[0]
     top_10 = top_customer_df.head(10)
+    st.subheader("👥 Customer Group-wise Sales")
+
+    # Step 1: Aggregate sales by customer group
+    group_sales = df.groupby('Customer group')['Bill Qty'].sum().reset_index()
     
+    # Step 2: Define threshold and assign 'Others' to low-value groups
+    threshold = 100000  # Adjust as needed
+    group_sales['Group Name'] = group_sales.apply(
+        lambda row: 'Others' if row['Bill Qty'] < threshold else row['Customer group'], axis=1
+    )
+    
+    # Step 3: Re-aggregate after grouping
+    group_final = group_sales.groupby('Group Name')['Bill Qty'].sum().reset_index()
+    group_final = group_final.sort_values('Bill Qty', ascending=False)
+    
+    # Step 4: Plot
+    fig3 = px.pie(group_final, names='Group Name', values='Bill Qty', title='Customer Group-wise Sales')
+    st.plotly_chart(fig3, use_container_width=True)
     # ---- ROW 1: Metric Card ----
     st.subheader("🏆 Top Customer Summary")
     col1, col2 = st.columns(2)

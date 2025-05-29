@@ -39,10 +39,22 @@ if uploaded_file:
     # Metric cards for top customer summary
     st.subheader("🏆 Top Customer Summary")
     col1, col2 = st.columns(2)
+
     with col1:
-        st.metric(label="Top Customer", value=top_customer['Customer Name'])
+        st.markdown(f"""
+            <div style="font-size:14px; color:gray;">Top Customer</div>
+            <div style="font-size:20px; font-weight:bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 300px;">
+                {top_customer['Customer Name']}
+            </div>
+        """, unsafe_allow_html=True)
+    
     with col2:
-        st.metric(label="Total Quantity Purchased", value=int(top_customer['Bill Qty']))
+        st.markdown(f"""
+            <div style="font-size:14px; color:gray;">Total Quantity Purchased</div>
+            <div style="font-size:24px; font-weight:bold;">
+                {int(top_customer['Bill Qty'])}
+            </div>
+        """, unsafe_allow_html=True)
 
     # Top 10 Customers Chart
     st.subheader("💯 Top 10 Customers by Quantity")

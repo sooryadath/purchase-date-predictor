@@ -49,11 +49,11 @@ if uploaded_file:
     fig1.update_layout(xaxis={'categoryorder': 'total descending'}, xaxis_tickangle=-45)
     st.plotly_chart(fig1, use_container_width=True)
     
-    # ---- ROW 3: Year-wise Sales ----
-    st.subheader("📅 Year-wise Sales Quantity")
-    year_sales = filtered_df.groupby('Year')['Bill Qty'].sum().reset_index()
-    fig2 = px.bar(year_sales, x='Year', y='Bill Qty', title='Year-wise Sales Quantity', text='Bill Qty')
-    st.plotly_chart(fig2, use_container_width=True)
+    # # ---- ROW 3: Year-wise Sales ----
+    # st.subheader("📅 Year-wise Sales Quantity")
+    # year_sales = filtered_df.groupby('Year')['Bill Qty'].sum().reset_index()
+    # fig2 = px.bar(year_sales, x='Year', y='Bill Qty', title='Year-wise Sales Quantity', text='Bill Qty')
+    # st.plotly_chart(fig2, use_container_width=True)
     
     # ---- ROW 4: Customer Group-wise Sales (with "Others") ----
     st.subheader("👥 Customer Group-wise Sales")
@@ -67,7 +67,7 @@ if uploaded_file:
     group_final = group_sales.groupby('Group Name')['Bill Qty'].sum().reset_index()
     group_final = group_final.sort_values('Bill Qty', ascending=False)
     
-    fig3 = px.pie(group_final, names='Group Name', values='Bill Qty', title='Customer Group-wise Sales')
+    fig3 = px.bar(group_final, names='Group Name', values='Bill Qty', title='Customer Group-wise Sales')
     st.plotly_chart(fig3, use_container_width=True)
    
     

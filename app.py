@@ -19,30 +19,21 @@ if uploaded_file:
     
     st.title("📊 Billing Dashboard")
     
-    # Calculate Top Customer Info
-    top_customer_df = df.groupby('Customer Name')['Bill Qty'].sum().reset_index()
+    st.sidebar.header("📅 Filter by Date Range")
+    min_date = df['Bill date'].min()
+    max_date = df['Bill date'].max()
+    start_date, end_date = st.sidebar.date_input("Select date range", [min_date, max_date])
+    
+    # Filter data based on selected range
+    filtered_df = df[(df['Bill date'] >= pd.to_datetime(start_date)) & (df['Bill date'] <= pd.to_datetime(end_date))]
+    
+    # ---- Top Customer Info ----
+    top_customer_df = filtered_df.groupby('Customer Name')['Bill Qty'].sum().reset_index()
     top_customer_df = top_customer_df.sort_values('Bill Qty', ascending=False)
     
-    top_customer = top_customer_df.iloc[0]
-    top_10 = top_customer_df.head(10)
-    st.subheader("👥 Customer Group-wise Sales")
-
-    # Step 1: Aggregate sales by customer group
-    group_sales = df.groupby('Customer group')['Bill Qty'].sum().reset_index()
+    top_customer = top_customer_df.iloc[0] if not top_customer_df.empty else {"Customer Name": "N/A", "Bill Qty": 0}
+    top_100 = top_customer_df.head(100)
     
-    # Step 2: Define threshold and assign 'Others' to low-value groups
-    threshold = 100000  # Adjust as needed
-    group_sales['Group Name'] = group_sales.apply(
-        lambda row: 'Others' if row['Bill Qty'] < threshold else row['Customer group'], axis=1
-    )
-    
-    # Step 3: Re-aggregate after grouping
-    group_final = group_sales.groupby('Group Name')['Bill Qty'].sum().reset_index()
-    group_final = group_final.sort_values('Bill Qty', ascending=False)
-    
-    # Step 4: Plot
-    fig3 = px.pie(group_final, names='Group Name', values='Bill Qty', title='Customer Group-wise Sales')
-    st.plotly_chart(fig3, use_container_width=True)
     # ---- ROW 1: Metric Card ----
     st.subheader("🏆 Top Customer Summary")
     col1, col2 = st.columns(2)
@@ -52,16 +43,34 @@ if uploaded_file:
         st.metric(label="Total Quantity", value=int(top_customer['Bill Qty']))
     
     # ---- ROW 2: Top 10 Customers Chart ----
-    st.subheader("🔟 Top 10 Customers by Quantity")
+    st.subheader("💯 Top 10 Customers by Quantity")
     fig1 = px.bar(top_10, x='Customer Name', y='Bill Qty', title='Top 10 Customers', color='Bill Qty',
                   color_continuous_scale='Blues')
+    fig1.update_layout(xaxis={'categoryorder': 'total descending'}, xaxis_tickangle=-45)
     st.plotly_chart(fig1, use_container_width=True)
     
     # ---- ROW 3: Year-wise Sales ----
     st.subheader("📅 Year-wise Sales Quantity")
-    year_sales = df.groupby('Year')['Bill Qty'].sum().reset_index()
+    year_sales = filtered_df.groupby('Year')['Bill Qty'].sum().reset_index()
     fig2 = px.bar(year_sales, x='Year', y='Bill Qty', title='Year-wise Sales Quantity', text='Bill Qty')
     st.plotly_chart(fig2, use_container_width=True)
+    
+    # ---- ROW 4: Customer Group-wise Sales (with "Others") ----
+    st.subheader("👥 Customer Group-wise Sales")
+    group_sales = filtered_df.groupby('Customer group')['Bill Qty'].sum().reset_index()
+    
+    # Group small contributors as 'Others'
+    threshold = 100000
+    group_sales['Group Name'] = group_sales.apply(
+        lambda row: 'Others' if row['Bill Qty'] < threshold else row['Customer group'], axis=1
+    )
+    group_final = group_sales.groupby('Group Name')['Bill Qty'].sum().reset_index()
+    group_final = group_final.sort_values('Bill Qty', ascending=False)
+    
+    fig3 = px.pie(group_final, names='Group Name', values='Bill Qty', title='Customer Group-wise Sales')
+    st.plotly_chart(fig3, use_container_width=True)
+   
+    
     # Clean column names
     df.columns = df.columns.str.strip()
 

@@ -55,19 +55,13 @@ if uploaded_file:
     # fig2 = px.bar(year_sales, x='Year', y='Bill Qty', title='Year-wise Sales Quantity', text='Bill Qty')
     # st.plotly_chart(fig2, use_container_width=True)
     
-    # ---- ROW 4: Customer Group-wise Sales (with "Others") ----
-    st.subheader("👥 Customer Group-wise Sales")
+    st.subheader("👥 Customer Group-wise Sales (Bar Chart)")
     group_sales = filtered_df.groupby('Customer group')['Bill Qty'].sum().reset_index()
+    group_sales = group_sales.sort_values('Bill Qty', ascending=False)
     
-    # Group small contributors as 'Others'
-    threshold = 100000
-    group_sales['Group Name'] = group_sales.apply(
-        lambda row: 'Others' if row['Bill Qty'] < threshold else row['Customer group'], axis=1
-    )
-    group_final = group_sales.groupby('Group Name')['Bill Qty'].sum().reset_index()
-    group_final = group_final.sort_values('Bill Qty', ascending=False)
-    
-    fig3 = px.bar(group_final, names='Group Name', values='Bill Qty', title='Customer Group-wise Sales')
+    fig3 = px.bar(group_sales, x='Customer group', y='Bill Qty', title='Customer Group-wise Sales',
+                  color='Bill Qty', color_continuous_scale='Viridis')
+    fig3.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig3, use_container_width=True)
    
     

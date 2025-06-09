@@ -5,4 +5,4 @@ scikit-learn
 openpyxl
 xlsxwriter
 plotly
-dateutil.relativedelta
+python-dateutil

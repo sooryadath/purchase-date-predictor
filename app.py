@@ -5,11 +5,10 @@ from sklearn.ensemble import RandomForestRegressor
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import mean_absolute_error
 from datetime import datetime, timedelta
+from dateutil.relativedelta import relativedelta
 import plotly.express as px
 
 st.set_page_config(page_title="Customer Dashboard", layout="wide")
-
-# Main Title
 st.title("🛍️ Customer Purchase Date Predictor & Sales Dashboard")
 
 uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
@@ -18,25 +17,21 @@ if uploaded_file:
     df = pd.read_excel(uploaded_file)
     df['Bill date'] = pd.to_datetime(df['Bill date'])
     df['Year'] = df['Bill date'].dt.year
-    
+
     # SECTION 1: SALES DASHBOARD
     st.header("📊 Sales Dashboard")
-    
     st.sidebar.header("📅 Filter by Date Range")
     min_date = df['Bill date'].min()
     max_date = df['Bill date'].max()
     start_date, end_date = st.sidebar.date_input("Select date range", [min_date, max_date])
-    
-    # Filter data based on selected range
+
     filtered_df = df[(df['Bill date'] >= pd.to_datetime(start_date)) & (df['Bill date'] <= pd.to_datetime(end_date))]
-    
-    # --- Top Customer Info ---
+
     top_customer_df = filtered_df.groupby('Customer Name')['Bill Qty'].sum().reset_index()
     top_customer_df = top_customer_df.sort_values('Bill Qty', ascending=False)
     top_customer = top_customer_df.iloc[0] if not top_customer_df.empty else {"Customer Name": "N/A", "Bill Qty": 0}
     top_10 = top_customer_df.head(10)
 
-    # Metric cards for top customer summary
     st.subheader("🏆 Top Customer Summary")
     col1, col2 = st.columns(2)
 
@@ -47,7 +42,7 @@ if uploaded_file:
                 {top_customer['Customer Name']}
             </div>
         """, unsafe_allow_html=True)
-    
+
     with col2:
         st.markdown(f"""
             <div style="font-size:14px; color:gray;">Total Quantity Purchased</div>
@@ -56,14 +51,12 @@ if uploaded_file:
             </div>
         """, unsafe_allow_html=True)
 
-    # Top 10 Customers Chart
     st.subheader("💯 Top 10 Customers by Quantity")
     fig1 = px.bar(top_10, x='Customer Name', y='Bill Qty', title='Top 10 Customers',
                   color='Bill Qty', color_continuous_scale='Blues')
     fig1.update_layout(xaxis={'categoryorder': 'total descending'}, xaxis_tickangle=-45)
     st.plotly_chart(fig1, use_container_width=True)
 
-    # Customer Group-wise Sales Chart
     st.subheader("👥 Customer Group-wise Sales (Bar Chart)")
     group_sales = filtered_df.groupby('Customer group')['Bill Qty'].sum().reset_index()
     group_sales = group_sales.sort_values('Bill Qty', ascending=False)
@@ -72,16 +65,13 @@ if uploaded_file:
     fig3.update_layout(xaxis_tickangle=-45)
     st.plotly_chart(fig3, use_container_width=True)
 
-    # -------------------------------
     # SECTION 2: PREDICTION DASHBOARD
     st.header("🔮 Purchase Date Prediction")
 
-    # Clean column names
     df.columns = df.columns.str.strip()
     df['Bill date'] = pd.to_datetime(df['Bill date'])
     df = df.sort_values(['Customer Code', 'Bill date'])
 
-    # Feature Engineering
     df['Next Purchase Date'] = df.groupby('Customer Code')['Bill date'].shift(-1)
     df['Days Until Next Purchase'] = (df['Next Purchase Date'] - df['Bill date']).dt.days
     df['Previous Purchase Date'] = df.groupby('Customer Code')['Bill date'].shift(1)
@@ -102,7 +92,6 @@ if uploaded_file:
     st.subheader("📊 Model Performance")
     st.write(f"Mean Absolute Error (MAE): **{mae:.2f} days**")
 
-    # Predict next 3 purchases for each customer
     latest_txns = df.sort_values('Bill date').groupby('Customer Code').tail(1)
     latest_txns = latest_txns.dropna(subset=feature_cols)
     next_dates = []
@@ -134,23 +123,8 @@ if uploaded_file:
     latest_txns['Next Purchase Date 2'] = [d[1] for d in next_dates]
     latest_txns['Next Purchase Date 3'] = [d[2] for d in next_dates]
 
-    # Format dates for display
-    date_cols = ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
-    for col in date_cols:
-        latest_txns[col] = pd.to_datetime(latest_txns[col]).dt.strftime('%d/%m/%Y')
-
-    # Select customer to view predictions
-    customer_names = latest_txns['Customer Name'].dropna().unique()
-    selected_customer = st.selectbox("Select a customer to view predictions", options=customer_names)
-
-    result = latest_txns[latest_txns['Customer Name'] == selected_customer]
-    st.subheader("📌 Next Predicted Purchase Dates")
-    st.dataframe(result[['Customer Code', 'Customer Name', 'Bill date',
-                         'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']])
-
-    # Date range filter for all predictions
+    # Date range input for prediction filtering
     st.markdown("## 🔍 Filter Predictions by Date Range")
-
     today = datetime.today()
     start_date_pred = st.date_input("Start Date", value=today, key="start_pred")
     end_date_pred = st.date_input("End Date", value=today + timedelta(days=30), key="end_pred")
@@ -158,9 +132,10 @@ if uploaded_file:
     start_date_pred = pd.Timestamp(start_date_pred)
     end_date_pred = pd.Timestamp(end_date_pred)
 
-    # Convert back to datetime for filtering (dayfirst=True for dd/mm/yyyy)
+    # Ensure datetime conversion
+    date_cols = ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']
     for col in date_cols:
-        latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce', dayfirst=True)
+        latest_txns[col] = pd.to_datetime(latest_txns[col], errors='coerce')
 
     filtered_preds = latest_txns[
         latest_txns['Next Purchase Date 1'].between(start_date_pred, end_date_pred) |
@@ -168,11 +143,61 @@ if uploaded_file:
         latest_txns['Next Purchase Date 3'].between(start_date_pred, end_date_pred)
     ]
 
-    filtered_preds = filtered_preds[['Customer Code', 'Customer Name', 'Bill date',
-                                     'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
+    # Highlight past dates in red
+    def color_date(date_val):
+        if pd.isna(date_val):
+            return ""
+        elif date_val < datetime.today():
+            return f"<span style='color:red'>{date_val.strftime('%d-%b-%y')}</span>"
+        else:
+            return date_val.strftime('%d-%b-%y')
 
-    for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
-        filtered_preds[col] = pd.to_datetime(filtered_preds[col], errors='coerce').dt.strftime('%d-%b-%y')
+    styled_rows = []
+    for _, row in filtered_preds.iterrows():
+        styled_rows.append({
+            'Customer Code': row['Customer Code'],
+            'Customer Name': row['Customer Name'],
+            'Bill date': row['Bill date'].strftime('%d-%b-%y'),
+            'Next Purchase Date 1': color_date(row['Next Purchase Date 1']),
+            'Next Purchase Date 2': color_date(row['Next Purchase Date 2']),
+            'Next Purchase Date 3': color_date(row['Next Purchase Date 3']),
+        })
 
-    st.write(f"Showing predicted purchases between {start_date_pred.date()} and {end_date_pred.date()}")
-    st.dataframe(filtered_preds)
+    st.markdown("### 📌 Predicted Purchases in Selected Date Range")
+    html_table = "<table><thead><tr>"
+    for col in styled_rows[0].keys():
+        html_table += f"<th style='padding:8px; text-align:left'>{col}</th>"
+    html_table += "</tr></thead><tbody>"
+
+    for row in styled_rows:
+        html_table += "<tr>"
+        for val in row.values():
+            html_table += f"<td style='padding:8px'>{val}</td>"
+        html_table += "</tr>"
+    html_table += "</tbody></table>"
+    st.markdown(html_table, unsafe_allow_html=True)
+
+    # Purchase counts
+    all_preds = pd.concat([
+        latest_txns[['Customer Code', 'Customer Name', 'Next Purchase Date 1']].rename(columns={'Next Purchase Date 1': 'Predicted Date'}),
+        latest_txns[['Customer Code', 'Customer Name', 'Next Purchase Date 2']].rename(columns={'Next Purchase Date 2': 'Predicted Date'}),
+        latest_txns[['Customer Code', 'Customer Name', 'Next Purchase Date 3']].rename(columns={'Next Purchase Date 3': 'Predicted Date'})
+    ])
+    all_preds = all_preds.dropna()
+    all_preds['Month'] = all_preds['Predicted Date'].dt.month
+
+    this_month_count = all_preds[all_preds['Month'] == today.month].shape[0]
+    next_month_count = all_preds[all_preds['Month'] == (today + relativedelta(months=1)).month].shape[0]
+
+    st.markdown("### 📈 Purchase Counts")
+    st.write(f"**Predicted Sales in {today.strftime('%B %Y')}:** {this_month_count}")
+    st.write(f"**Predicted Sales in {(today + relativedelta(months=1)).strftime('%B %Y')}:** {next_month_count}")
+
+    # Inactive customers
+    inactive_threshold = today - pd.Timedelta(days=90)
+    inactive_customers = df[df['Bill date'] < inactive_threshold].groupby('Customer Code').tail(1)
+    inactive_customers = inactive_customers[['Customer Code', 'Customer Name', 'Bill date']]
+    inactive_customers = inactive_customers.sort_values('Bill date')
+
+    st.markdown("### ❌ Inactive Customers (No Purchases in Last 3 Months)")
+    st.dataframe(inactive_customers)

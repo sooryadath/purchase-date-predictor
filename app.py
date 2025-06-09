@@ -198,6 +198,8 @@ if uploaded_file:
     inactive_customers = df[df['Bill date'] < inactive_threshold].groupby('Customer Code').tail(1)
     inactive_customers = inactive_customers[['Customer Code', 'Customer Name', 'Bill date']]
     inactive_customers = inactive_customers.sort_values('Bill date')
+    inactive_customers['Bill date'] = inactive_customers['Bill date'].dt.strftime('%d-%b-%y')
 
     st.markdown("### ❌ Inactive Customers (No Purchases in Last 3 Months)")
     st.dataframe(inactive_customers)
+

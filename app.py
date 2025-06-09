@@ -185,9 +185,16 @@ if uploaded_file:
     ])
     all_preds = all_preds.dropna()
     all_preds['Month'] = all_preds['Predicted Date'].dt.month
+    all_preds['Year'] = all_preds['Predicted Date'].dt.year
 
-    this_month_count = all_preds[all_preds['Month'] == today.month].shape[0]
-    next_month_count = all_preds[all_preds['Month'] == (today + relativedelta(months=1)).month].shape[0]
+    this_month = today.month
+    this_year = today.year
+    next_month = (today + relativedelta(months=1)).month
+    next_year = (today + relativedelta(months=1)).year
+
+    this_month_count = all_preds[(all_preds['Month'] == this_month) & (all_preds['Year'] == this_year)].shape[0]
+    next_month_count = all_preds[(all_preds['Month'] == next_month) & (all_preds['Year'] == next_year)].shape[0]
+
 
     st.markdown("### 📈 Purchase Counts")
     st.write(f"**Predicted Sales in {today.strftime('%B %Y')}:** {this_month_count}")

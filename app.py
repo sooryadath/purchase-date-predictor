@@ -144,16 +144,16 @@ if uploaded_file:
         if pd.isna(date_val):
             return ""
         elif date_val < datetime.today():
-            return f"<span style='color:red'>{date_val.strftime('%d-%m-%y')}</span>"
+            return f"<span style='color:red'>{date_val.strftime('%d-%b-%y')}</span>"
         else:
-            return date_val.strftime('%d-%m-%y')
+            return date_val.strftime('%d-%b-%y')
 
     styled_rows = []
     for _, row in filtered_preds.iterrows():
         styled_rows.append({
             'Customer Code': row['Customer Code'],
             'Customer Name': row['Customer Name'],
-            'Bill date': row['Bill date'].strftime('%d-%m-%y'),
+            'Bill date': row['Bill date'].strftime('%d-%b-%y'),
             'Next Purchase Date 1': color_date(row['Next Purchase Date 1']),
             'Next Purchase Date 2': color_date(row['Next Purchase Date 2']),
             'Next Purchase Date 3': color_date(row['Next Purchase Date 3']),
@@ -200,7 +200,7 @@ if uploaded_file:
     inactive_customers = df[df['Bill date'] < inactive_threshold].groupby('Customer Code').tail(1)
     inactive_customers = inactive_customers[['Customer Code', 'Customer Name', 'Bill date']]
     inactive_customers = inactive_customers.sort_values('Bill date')
-    inactive_customers['Bill date'] = inactive_customers['Bill date'].dt.strftime('%d-%m-%y')
+    inactive_customers['Bill date'] = inactive_customers['Bill date'].dt.strftime('%d-%b-%y')
 
     st.markdown("### ❌ Inactive Customers (No Purchases in Last 3 Months)")
     st.dataframe(inactive_customers)
@@ -215,7 +215,7 @@ if uploaded_file:
                      'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
 
     for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
-        result[col] = pd.to_datetime(result[col]).dt.strftime('%d-%m-%y')
+        result[col] = pd.to_datetime(result[col]).dt.strftime('%d-%b-%y')
 
     st.subheader("📌 Next Predicted Purchase Dates")
     st.dataframe(result)

@@ -159,6 +159,26 @@ if uploaded_file:
             'Next Purchase Date 3': color_date(row['Next Purchase Date 3']),
         })
 
+     # Select customer to view predictions
+    st.markdown("### 🔎 Individual Customer Prediction Viewer")
+    customer_names = latest_txns['Customer Name'].dropna().unique()
+    selected_customer = st.selectbox("Select a customer to view predictions", options=sorted(customer_names))
+
+    result = latest_txns[latest_txns['Customer Name'] == selected_customer]
+    result = result[['Customer Code', 'Customer Name', 'Bill date',
+                     'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
+
+    for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
+        result[col] = pd.to_datetime(result[col]).dt.strftime('%d-%b-%y')
+
+    st.subheader("📌 Next Predicted Purchase Dates")
+    st.dataframe(result)
+    
+    
+    
+    
+    
+    
     st.markdown("### 📌 Predicted Purchases in Selected Date Range")
     html_table = "<table><thead><tr>"
     for col in styled_rows[0].keys():
@@ -205,17 +225,4 @@ if uploaded_file:
     st.markdown("### ❌ Inactive Customers (No Purchases in Last 3 Months)")
     st.dataframe(inactive_customers)
 
-    # Select customer to view predictions
-    st.markdown("### 🔎 Individual Customer Prediction Viewer")
-    customer_names = latest_txns['Customer Name'].dropna().unique()
-    selected_customer = st.selectbox("Select a customer to view predictions", options=sorted(customer_names))
-
-    result = latest_txns[latest_txns['Customer Name'] == selected_customer]
-    result = result[['Customer Code', 'Customer Name', 'Bill date',
-                     'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
-
-    for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
-        result[col] = pd.to_datetime(result[col]).dt.strftime('%d-%b-%y')
-
-    st.subheader("📌 Next Predicted Purchase Dates")
-    st.dataframe(result)
+   

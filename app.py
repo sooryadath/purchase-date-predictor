@@ -91,20 +91,7 @@ if uploaded_file:
     mae = mean_absolute_error(y_test, model.predict(X_test))
     st.subheader("📊 Model Performance")
     st.write(f"Mean Absolute Error (MAE): **{mae:.2f} days**")
-      # Select customer to view predictions
-    st.markdown("### 🔎 Individual Customer Prediction Viewer")
-    customer_names = latest_txns['Customer Name'].dropna().unique()
-    selected_customer = st.selectbox("Select a customer to view predictions", options=sorted(customer_names))
-
-    result = latest_txns[latest_txns['Customer Name'] == selected_customer]
-    result = result[['Customer Code', 'Customer Name', 'Bill date',
-                     'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
-
-    for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
-        result[col] = pd.to_datetime(result[col]).dt.strftime('%d-%b-%y')
-
-    st.subheader("📌 Next Predicted Purchase Dates")
-    st.dataframe(result)
+      
 
     latest_txns = df.sort_values('Bill date').groupby('Customer Code').tail(1)
     latest_txns = latest_txns.dropna(subset=feature_cols)
@@ -133,6 +120,23 @@ if uploaded_file:
     latest_txns['Next Purchase Date 2'] = [d[1] for d in next_dates]
     latest_txns['Next Purchase Date 3'] = [d[2] for d in next_dates]
 
+    # Select customer to view predictions
+    st.markdown("### 🔎 Individual Customer Prediction Viewer")
+    customer_names = latest_txns['Customer Name'].dropna().unique()
+    selected_customer = st.selectbox("Select a customer to view predictions", options=sorted(customer_names))
+
+    result = latest_txns[latest_txns['Customer Name'] == selected_customer]
+    result = result[['Customer Code', 'Customer Name', 'Bill date',
+                     'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
+
+    for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
+        result[col] = pd.to_datetime(result[col]).dt.strftime('%d-%b-%y')
+
+    st.subheader("📌 Next Predicted Purchase Dates")
+    st.dataframe(result)
+    
+    
+    
     # Date range input for prediction filtering
     st.markdown("## 🔍 Filter Predictions by Date Range")
     today = datetime.today()

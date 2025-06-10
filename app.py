@@ -9,7 +9,7 @@ from dateutil.relativedelta import relativedelta
 import plotly.express as px
 
 st.set_page_config(page_title="Customer Dashboard", layout="wide")
-st.title("🛍️ Customer Purchase Date Predictor & Sales Dashboard")
+st.title("🛙️ Customer Purchase Date Predictor & Sales Dashboard")
 
 uploaded_file = st.file_uploader("Upload your Excel file", type=["xlsx"])
 
@@ -20,7 +20,7 @@ if uploaded_file:
 
     # SECTION 1: SALES DASHBOARD
     st.header("📊 Sales Dashboard")
-    st.sidebar.header("📅 Filter by Date Range")
+    st.sidebar.header("🗕️ Filter by Date Range")
     min_date = df['Bill date'].min()
     max_date = df['Bill date'].max()
     start_date, end_date = st.sidebar.date_input("Select date range", [min_date, max_date])
@@ -104,11 +104,7 @@ if uploaded_file:
         qty = row['Bill Qty']
 
         for _ in range(3):
-            features = pd.DataFrame([{
-                'Bill Qty': qty,
-                'Days Since Last Purchase': days_since_last,
-                'Purchase Count': purchase_count
-            }])
+            features = pd.DataFrame([{ 'Bill Qty': qty, 'Days Since Last Purchase': days_since_last, 'Purchase Count': purchase_count }])
             predicted_days = model.predict(features)[0]
             next_purchase_date = current_date + pd.to_timedelta(predicted_days, unit='D')
             pred_dates.append(next_purchase_date)
@@ -148,16 +144,16 @@ if uploaded_file:
         if pd.isna(date_val):
             return ""
         elif date_val < datetime.today():
-            return f"<span style='color:red'>{date_val.strftime('%d-%b-%y')}</span>"
+            return f"<span style='color:red'>{date_val.strftime('%d-%m-%y')}</span>"
         else:
-            return date_val.strftime('%d-%b-%y')
+            return date_val.strftime('%d-%m-%y')
 
     styled_rows = []
     for _, row in filtered_preds.iterrows():
         styled_rows.append({
             'Customer Code': row['Customer Code'],
             'Customer Name': row['Customer Name'],
-            'Bill date': row['Bill date'].strftime('%d-%b-%y'),
+            'Bill date': row['Bill date'].strftime('%d-%m-%y'),
             'Next Purchase Date 1': color_date(row['Next Purchase Date 1']),
             'Next Purchase Date 2': color_date(row['Next Purchase Date 2']),
             'Next Purchase Date 3': color_date(row['Next Purchase Date 3']),
@@ -195,7 +191,6 @@ if uploaded_file:
     this_month_count = all_preds[(all_preds['Month'] == this_month) & (all_preds['Year'] == this_year)].shape[0]
     next_month_count = all_preds[(all_preds['Month'] == next_month) & (all_preds['Year'] == next_year)].shape[0]
 
-
     st.markdown("### 📈 Purchase Counts")
     st.write(f"**Predicted Sales in {today.strftime('%B %Y')}:** {this_month_count}")
     st.write(f"**Predicted Sales in {(today + relativedelta(months=1)).strftime('%B %Y')}:** {next_month_count}")
@@ -205,8 +200,22 @@ if uploaded_file:
     inactive_customers = df[df['Bill date'] < inactive_threshold].groupby('Customer Code').tail(1)
     inactive_customers = inactive_customers[['Customer Code', 'Customer Name', 'Bill date']]
     inactive_customers = inactive_customers.sort_values('Bill date')
-    inactive_customers['Bill date'] = inactive_customers['Bill date'].dt.strftime('%d-%b-%y')
+    inactive_customers['Bill date'] = inactive_customers['Bill date'].dt.strftime('%d-%m-%y')
 
     st.markdown("### ❌ Inactive Customers (No Purchases in Last 3 Months)")
     st.dataframe(inactive_customers)
 
+    # Select customer to view predictions
+    st.markdown("### 🔎 Individual Customer Prediction Viewer")
+    customer_names = latest_txns['Customer Name'].dropna().unique()
+    selected_customer = st.selectbox("Select a customer to view predictions", options=sorted(customer_names))
+
+    result = latest_txns[latest_txns['Customer Name'] == selected_customer]
+    result = result[['Customer Code', 'Customer Name', 'Bill date',
+                     'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']]
+
+    for col in ['Bill date', 'Next Purchase Date 1', 'Next Purchase Date 2', 'Next Purchase Date 3']:
+        result[col] = pd.to_datetime(result[col]).dt.strftime('%d-%m-%y')
+
+    st.subheader("📌 Next Predicted Purchase Dates")
+    st.dataframe(result)
